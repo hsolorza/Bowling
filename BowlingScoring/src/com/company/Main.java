@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import static com.company.Frame.*;
+import static com.company.Frame.frame;
 
 public class Main {
 
@@ -29,6 +30,14 @@ public class Main {
                     readInScores(frame);
                 }
             }
+        }
+
+        // Check if the player logged a strike or a spare on the last frame
+        if((frame == 9) &&
+                ((roll1.matches("[xX]")) ||
+                (roll2.matches("\\/")) ||
+                (Integer.parseInt(roll1) + Integer.parseInt(roll2) == 10))){
+            bonusRoll = true;
         }
     }
 
@@ -90,21 +99,30 @@ public class Main {
         }
     }
 
-    public static void print(int currentFrame, int lastFrame, int prettyFrame){
-        if(spareFlag == 2){
-            System.out.println("| Frame:       " + frame + " |");
-            System.out.println("| Frame Score:  " + frameScores[lastFrame] + " |");
-            System.out.println("| Total Score: " + totalScores[lastFrame] + " |");
-            spareFlag = 0;
-            System.out.println("");
-        }
+    public static void bonusRoll(int frame) throws IOException {
+        System.out.println("Bonus Roll! Enter in the final roll: ");
 
-        if(strikeFlag == 2){
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String rollBonus = br.readLine();
+        int bonus = Integer.parseInt(rollBonus);
+
+        frameScores[frame] += bonus;
+        totalScores[frame] = totalScores[frame - 1] + frameScores[frame];
+
+        System.out.println("| Bonus Frame:        |");
+        System.out.println("| Frame Score:  " + frameScores[frame] + " |");
+        System.out.println("| Total Score: " + totalScores[frame] + " |");
+
+    }
+    public static void print(int currentFrame, int lastFrame, int prettyFrame){
+        if(spareFlag == 2  || strikeFlag == 2){
             System.out.println("| Frame:       " + frame + " |");
             System.out.println("| Frame Score:  " + frameScores[lastFrame] + " |");
             System.out.println("| Total Score: " + totalScores[lastFrame] + " |");
-            totalScore += totalScores[lastFrame];
-            strikeFlag = 0;
+            if(spareFlag == 2)
+                spareFlag = 0;
+            else
+                strikeFlag = 0;
             System.out.println("");
         }
 
@@ -114,7 +132,7 @@ public class Main {
     }
     public static void main(String[] args) throws IOException {
 
-        while(frame < 11){
+        while(frame < 10){
             readInScores(frame);
             score();
 
@@ -124,11 +142,15 @@ public class Main {
 
             print(currentFrame, lastFrame, prettyFrame);
 
+            if(bonusRoll) bonusRoll(currentFrame);
+
             // If the current frame was a spare/strike, update flags to show that the counter is now past that frame
             if(spareFlag == 1) spareFlag = 2;
             if(strikeFlag == 1) strikeFlag = 2;
 
             frame++;
         }
+
+        System.out.println("End of Game! Total score is: " + totalScores[frame - 1]);
     }
 }
